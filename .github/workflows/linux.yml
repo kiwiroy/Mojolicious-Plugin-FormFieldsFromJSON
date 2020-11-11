@@ -34,3 +34,27 @@ jobs:
           dzil listdeps | grep -vP '[^\w:]' | cpanm --verbose
       - name: dzil smoke
         run: dzil smoke --release --author
+  minimum-mojo-version:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        perl-version:
+          - '5.32'
+    container:
+      image: perl:${{ matrix.perl-version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: perl -V
+        run: perl -V
+      - name: Only Mojolicious minimum version
+        run: cpanm -n -q Mojolicious@7.15
+      - name: Install dependencies
+        run: |
+          cpanm -n -q --skip-satisfied Dist::Zilla
+          dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm -n -q --skip-satisfied
+          export RELEASE_TESTING=1 AUTOMATED_TESTING=1 AUTHOR_TESTING=1 HARNESS_OPTIONS=j10:c HARNESS_TIMER=1
+          dzil listdeps | grep -vP '[^\w:]' | cpanm --verbose
+      - name: dzil smoke
+        run: dzil smoke --release --author
+
+ 
