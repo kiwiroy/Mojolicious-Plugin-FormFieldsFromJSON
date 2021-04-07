@@ -148,9 +148,10 @@ sub register {
 
                 my $name         = $field->{name} // $field->{label} // '';
                 my $global_error = 1;
+                my @filters      = @{ $field->{validation}{filters} // [] };
 
                 if ( $field->{validation}->{required} ) {
-                    $validation->required($name);
+                    $validation->required($name, @filters);
 
                     my $value = $field->{validation}->{required};
                     if ( ref $value && 'HASH' eq ref $value ) {
@@ -158,7 +159,7 @@ sub register {
                     }
                 }
                 else {
-                    $validation->optional($name);
+                    $validation->optional($name, @filters);
                 }
 
               RULE:
@@ -166,6 +167,7 @@ sub register {
                     last RULE if !defined $params{$name};
 
                     next RULE if $rule eq 'required';
+                    next RULE if $rule eq 'filters';
 
                     my $value  = $field->{validation}->{$rule};
                     my $ref    = ref $value;
